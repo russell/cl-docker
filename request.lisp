@@ -36,7 +36,7 @@
 ;;; Drakma. Unfortunately, as far as I know it does not support Unix
 ;;; Domain Sockets. It would be great if Drakma to be refactored so it
 ;;; can operate on streams too so we could use it here.
-;;; 
+;;;
 
 (defvar *crlf*
   (coerce #(#\return #\newline) 'string))
@@ -53,7 +53,7 @@ flexi-stream, which can be used to write and read from the daemon."
   #-sbcl (error "Only SBCL is supported at the moment.")
   (unless (probe-file pathname)
     (error 'docker-connection-error :pathname pathname))
-  
+
   (handler-case
       (let ((socket (make-instance 'sb-bsd-sockets:local-socket :type :stream)))
 	(sb-bsd-sockets:socket-connect socket pathname)
@@ -170,6 +170,7 @@ headers and values as strings."
   (let ((stream (open-docker-stream)))
     ;; Request resource
     (format-line* stream "~a ~a~a HTTP/1.1" method url (query-string-from-alist parameters))
+    (format-line* stream "Host: localhost")
     (format-line* stream "Connection: close")
 
     (when content-type
@@ -201,7 +202,7 @@ headers and values as strings."
        (write-string content stream))
       (stream
        (uiop/stream:copy-stream-to-stream content stream :element-type '(unsigned-byte 8))))
-    
+
 
     ;; Process response
     (let ((status-line (read-line* stream)))
