@@ -1,6 +1,6 @@
 (defpackage :docker/images
   (:use :common-lisp :docker/request)
-  (:import-from :yason)
+  (:import-from :cl-json)
   (:import-from :uiop #:copy-stream-to-stream)
   (:export #:create-image
            #:list-images
@@ -46,11 +46,11 @@ contains a tag, the second value is NIL."
       (request "/images/create"
                :method :post
                :parameters `(("fromImage" . ,from-image)))
-    
+
     (declare (ignorable headers))
     (handler-case
         (loop
-           for x = (yason:parse stream :object-as :alist)
+           for x = (json:decode-json stream)
            do (print x)
            do (let ((message (cdr (assoc "status" x :test #'string=))))
                 (when (and message output)

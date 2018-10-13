@@ -2,7 +2,7 @@
   (:use :common-lisp :docker/errors)
   (:import-from :chunga)
   (:import-from :flexi-streams)
-  (:import-from :yason)
+  (:import-from :cl-json)
   (:export #:request
            #:request-json
            #:url-encode))
@@ -236,6 +236,4 @@ headers and values as strings."
     (declare (ignorable headers))
     (when stream
       (with-open-stream (stream stream)
-        (yason:parse stream
-                     :object-key-fn #'string-to-keyword
-                     :object-as :plist)))))
+        (json:decode-json stream)))))

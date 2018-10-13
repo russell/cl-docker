@@ -1,7 +1,7 @@
 (defpackage :docker/misc
   (:use :common-lisp :docker/request)
   (:import-from :uiop #:copy-stream-to-stream)
-  (:import-from #:yason)
+  (:import-from #:cl-json)
   (:export #:info
            #:version
            #:ping
@@ -33,5 +33,5 @@
   (with-open-stream (stream (request "/events"))
     ;; TODO: Invoke a callback instead (or in addition to) print it.
     (loop
-       for event = (yason:parse stream :object-as :plist)
+       for event = (json:decode-json stream)
        do (print event))))
