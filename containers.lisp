@@ -5,6 +5,7 @@
            #:inspect-container
            #:list-container-processes
            #:inspect-container-changes
+           #:create-container
            #:remove-container
            #:wait-container
            #:export-container-to-stream
@@ -36,6 +37,15 @@
 
 (defun inspect-container-changes (id)
   (request-json (format nil "/containers/~a/changes" id)))
+
+(defun create-container (image &key json)
+  (request-json "/containers/create"
+                :method :post
+                :content-type "application/json"
+                :content (json:encode-json-to-string
+                           (cons
+                             `("Image" . ,image)
+                               json))))
 
 (defun remove-container (id &key force remove-volumes)
   (request-json (format nil "/containers/~a" id)
