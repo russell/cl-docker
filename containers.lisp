@@ -10,6 +10,7 @@
            #:wait-container
            #:export-container-to-stream
            #:export-container-to-pathname
+           #:start-container
            #:stop-container
            #:restart-container
            #:kill-container
@@ -72,6 +73,10 @@ arguments are passed to the function OPEN."
     (export-container-to-stream id out)))
 
 
+(defun start-container (id)
+  (request-json (format nil "/containers/~a/start" id)
+                :method :post))
+
 
 (defun stop-container (id &key timeout)
   (request-json (format nil "/containers/~a/stop" id)
@@ -89,7 +94,6 @@ arguments are passed to the function OPEN."
   (request-json (format nil "/containers/~a/kill" id)
                 :method :post
                 :parameters `(("signal" . ,signal))))
-
 
 
 (defun pause-container (id)
