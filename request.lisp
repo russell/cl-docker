@@ -193,7 +193,6 @@ headers and values as strings."
                (setf (chunga:chunked-stream-input-chunking-p content) t))))))
 
     (write-crlf stream)
-    (finish-output stream)
 
     ;; Send the request body
     (etypecase content
@@ -203,6 +202,7 @@ headers and values as strings."
       (stream
        (uiop/stream:copy-stream-to-stream content stream :element-type '(unsigned-byte 8))))
 
+    (finish-output stream)
 
     ;; Process response
     (let ((status-line (read-line* stream)))
