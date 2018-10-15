@@ -15,7 +15,8 @@
            #:restart-container
            #:kill-container
            #:pause-container
-           #:unpause-container))
+           #:unpause-container
+           #:container-logs))
 
 (in-package :docker/containers)
 
@@ -103,3 +104,18 @@ arguments are passed to the function OPEN."
 (defun unpause-container (id)
   (request-json (format nil "/containers/~a/unpause" id)
                 :method :post))
+
+(defun container-logs (id &key (details 0) (follow 0)
+                               (stdout 1)  (stderr 1)
+                               (scince 0) (timestamps 0)
+                               (tail "all"))
+  "returns the log stream for the specified container"
+  (request-stream (format nil "/containers/~a/logs" id)
+                  :method :get
+                  :parameters `(("details" . ,details)
+                                ("follow" . ,follow)
+                                ("stdout" . ,stdout)
+                                ("stderr" . ,stderr)
+                                ("scince" . ,scince)
+                                ("timestamps" . ,timestamps)
+                                ("tail". ,tail))))

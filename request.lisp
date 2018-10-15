@@ -5,6 +5,7 @@
   (:import-from :cl-json)
   (:export #:request
            #:request-json
+           #:request-stream
            #:url-encode))
 
 (in-package :docker/request)
@@ -237,3 +238,11 @@ headers and values as strings."
     (when stream
       (with-open-stream (stream stream)
         (json:decode-json stream)))))
+
+(defun request-stream (url &rest args &key &allow-other-keys)
+  "returns the docker stream"
+  ;TODO: handle multiplexing and timestamps
+  (multiple-value-bind (stream headers)
+      (apply #'request url args)
+    (declare (ignorable headers))
+    stream))
