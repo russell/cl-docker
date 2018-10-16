@@ -6,6 +6,7 @@
   (:export #:request
            #:request-json
            #:request-stream
+           #:request-json-stream
            #:url-encode))
 
 (in-package :docker/request)
@@ -243,6 +244,7 @@ headers and values as strings."
       (with-open-stream (stream stream)
         (json:decode-json stream)))))
 
+
 (defun request-stream (url &rest args &key &allow-other-keys)
   "returns the docker stream"
   ;TODO: handle multiplexing and timestamps
@@ -251,3 +253,29 @@ headers and values as strings."
     (declare (ignorable headers))
     (make-instance 'docker-line-stream
                    :stream stream)))
+
+(defun request-json-stream (url print-stream &rest args &key &allow-other-keys)
+  "parses a docker json stream, emmitting status
+  updates and returning aux or errors"
+  (multiple-value-bind (stream headers)
+      (apply #'request url args)
+    (declare (ignorable headers))
+    (when stream
+      (with-open-stream (stream stream)
+        (loop
+          while t
+          do (let* ((obj (json:decode-json stream))
+                    (aux (cdr (assoc :AUX obj)))
+                    ;(strm (cdr (assoc :STREAM obj)))
+                    (err (assoc :ERROR obj)))
+               (when aux
+                 (return aux))
+               (when err
+                 (return err))))))))
+                 ; TODO stream printing temporarly disabled until
+                 ;      a fix can be found.
+                 ;(when (and print-stream strm)
+                 ;  (write-string strm))
+                 ;(cond
+                 ;  (aux (setf ret aux))
+                 ;  (err (setf ret err)))))
