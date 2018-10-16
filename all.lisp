@@ -4,4 +4,5 @@
   (:use-reexport :docker/errors
                  :docker/images
                  :docker/containers
-                 :docker/misc))
+                 :docker/misc
+                 :docker/stream))

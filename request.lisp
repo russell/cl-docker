@@ -1,5 +1,5 @@
 (defpackage :docker/request
-  (:use :common-lisp :docker/errors)
+  (:use :common-lisp :docker/errors :docker/stream)
   (:import-from :chunga)
   (:import-from :flexi-streams)
   (:import-from :cl-json)
@@ -118,6 +118,7 @@ flexi-stream, which can be used to write and read from the daemon."
     (when value
       (subseq value 0 (or (position #\; value) (length value))))))
 
+
 ;;; Check if STREAM is a input binary stream.
 (defun binary-input-stream-p (stream)
   (and (input-stream-p stream)
@@ -163,7 +164,7 @@ flexi-stream, which can be used to write and read from the daemon."
           (write-entry (car entry) (cdr entry)))))))
 
 
-(defun request (url &key (method :get) parameters content content-type)
+(defun request (url &key (method :get) parameters content content-type binstream)
   "Request a resource an Docker Remote API end-point.
 
 It returns a stream as primary value and a associative list of HTTP
@@ -225,7 +226,10 @@ headers and values as strings."
                   (let ((chunked (chunga:make-chunked-stream stream)))
                     (when (equalp transfer-coding "chunked")
                       (setf (chunga:chunked-stream-input-chunking-p chunked) t))
-                    (flex:make-flexi-stream chunked :external-format :utf-8)))))
+                    (flex:make-flexi-stream chunked :external-format :utf-8
+                                                    :element-type (if binstream
+                                                                    'flex:octet
+                                                                    'character))))))
 
           (values content-stream headers))))))
 
@@ -243,6 +247,7 @@ headers and values as strings."
   "returns the docker stream"
   ;TODO: handle multiplexing and timestamps
   (multiple-value-bind (stream headers)
-      (apply #'request url args)
+      (apply #'request url :binstream t args)
     (declare (ignorable headers))
-    stream))
+    (make-instance 'docker-line-stream
+                   :stream stream)))
