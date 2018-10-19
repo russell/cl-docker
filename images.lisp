@@ -34,35 +34,33 @@ contains a tag, the second value is NIL."
 
 
 ;TODO: more options
-(defun build-image (spec &key status tag dockerfile)
-  "builds a docker image from spec.
-  if spec is a string, it is assumed to be a uri.
-  if spec is a pathname, it is assumed to be a path to a tarball
-  if spec is a stream, it is assumed to be tarstream"
-  (if (stringp spec)
-    ; send uri
-    (request-json-stream "/build" status
-                         :method :post
-                         :content-type "application/x-tar"
-                         :parameters `(("remote" . ,spec)
-                                       ("t" . ,tag)
-                                       ("dockerfile" . ,dockerfile)))
-    ; send tarstream
-    (let ((tarstream
-            (cond
-              ((streamp spec) spec)
-              ((pathnamep spec) (open spec :element-type '(unsigned-byte 8)))
-              (t (error "spec is not string stream or path")))))
-      (prog1
-        (request-json-stream "/build" status
-                             :method :post
-                             :content-type "application/x-tar"
-                             :parameters `(("t" . ,tag)
-                                           ("dockerfile" . ,dockerfile))
-                             :content tarstream)
-        (if (pathnamep spec)
-          (close tarstream))))))
+(defgeneric build-image (spec &key status tag dockerfile))
 
+(defmethod build-image ((spec string) &key status tag dockerfile)
+  "build an image from a url"
+  (request-json-stream "/build" status
+                       :method :post
+                       :content-type "application/x-tar"
+                       :parameters `(("remote" . ,spec)
+                                     ("t" . ,tag)
+                                     ("dockerfile" . ,dockerfile))))
+
+(defmethod build-image((spec pathname) &key status tag dockerfile)
+  "build image from tarfile"
+  (with-open-file (tarstream spec :element-type '(unsigned-byte 8))
+    (build-image tarstream
+                 :status status
+                 :tag tag
+                 :dockerfile dockerfile)))
+
+(defmethod build-image((spec stream) &key status tag dockerfile)
+  "build image from tarstream"
+  (request-json-stream "/build" status
+                       :method :post
+                       :content-type "application/x-tar"
+                       :parameters `(("t" . ,tag)
+                                     ("dockerfile" . ,dockerfile))
+                       :content spec))
 
 
 (defun list-images (&key all filters)
