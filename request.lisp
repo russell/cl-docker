@@ -266,20 +266,19 @@ headers and values as strings."
     (declare (ignorable headers))
     (when stream
       (with-open-stream (stream stream)
-        (loop
-          while t
-          do (let* ((obj (json:decode-json stream))
-                    (aux (cdr (assoc :AUX obj)))
-                    ;(strm (cdr (assoc :STREAM obj)))
-                    (err (assoc :ERROR obj)))
-               (when aux
-                 (return aux))
-               (when err
-                 (return err))))))))
-                 ; TODO stream printing temporarly disabled until
-                 ;      a fix can be found.
-                 ;(when (and print-stream strm)
-                 ;  (write-string strm))
-                 ;(cond
-                 ;  (aux (setf ret aux))
-                 ;  (err (setf ret err)))))
+        (let ((last-thing nil))
+          (loop
+            while t
+            do (handler-case
+                 (let* ((obj (json:decode-json stream))
+                        (aux (cdr (assoc :AUX obj)))
+                        ;(strm (cdr (assoc :STREAM obj)))
+                        (err (assoc :ERROR obj)))
+                   ;(print obj)
+                   (when aux
+                     (setf last-thing aux))
+                   (when err
+                     (setf last-thing err)))
+                 (end-of-file (c)
+                   (declare (ignore c))
+                   (return last-thing)))))))))
