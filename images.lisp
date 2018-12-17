@@ -34,18 +34,18 @@ contains a tag, the second value is NIL."
 
 
 ;TODO: more options
-(defgeneric build-image (spec &key status tag dockerfile))
+(defgeneric build-image (spec &key call tag dockerfile))
 
-(defmethod build-image ((spec string) &key status tag dockerfile)
+(defmethod build-image ((spec string) &key call tag dockerfile)
   "build an image from a url"
-  (request-json-stream "/build" status
+  (request-json-stream "/build" call
                        :method :post
                        :content-type "application/x-tar"
                        :parameters `(("remote" . ,spec)
                                      ("t" . ,tag)
                                      ("dockerfile" . ,dockerfile))))
 
-(defmethod build-image((spec pathname) &key status tag dockerfile)
+(defmethod build-image((spec pathname) &key call tag dockerfile)
   "build image from tarfile"
   (with-open-file (tarstream spec :element-type '(unsigned-byte 8))
     (build-image tarstream
@@ -53,18 +53,18 @@ contains a tag, the second value is NIL."
                  :tag tag
                  :dockerfile dockerfile)))
 
-(defmethod build-image((spec stream) &key status tag dockerfile)
+(defmethod build-image((spec stream) &key call tag dockerfile)
   "build image from tarstream"
-  (request-json-stream "/build" status
+  (request-json-stream "/build" call
                        :method :post
                        :content-type "application/x-tar"
                        :parameters `(("t" . ,tag)
                                      ("dockerfile" . ,dockerfile))
                        :content spec))
 
-(defmethod build-image((spec array) &key status tag dockerfile)
+(defmethod build-image((spec array) &key call tag dockerfile)
   "build image from tarstream"
-  (request-json-stream "/build" status
+  (request-json-stream "/build" call
                        :method :post
                        :content-type "application/x-tar"
                        :parameters `(("t" . ,tag)

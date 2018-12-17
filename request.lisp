@@ -258,7 +258,7 @@ headers and values as strings."
     (make-instance 'docker-line-stream
                    :stream stream)))
 
-(defun request-json-stream (url print-stream &rest args &key &allow-other-keys)
+(defun request-json-stream (url stream-fun &rest args &key &allow-other-keys)
   "parses a docker json stream, emmitting status
   updates and returning aux or errors"
   (multiple-value-bind (stream headers)
@@ -272,9 +272,10 @@ headers and values as strings."
             do (handler-case
                  (let* ((obj (json:decode-json stream))
                         (aux (cdr (assoc :AUX obj)))
-                        ;(strm (cdr (assoc :STREAM obj)))
+                        (strm (cdr (assoc :STREAM obj)))
                         (err (assoc :ERROR obj)))
-                   ;(print obj)
+                   (when (and stream-fun strm)
+                     (funcall stream-fun strm))
                    (when aux
                      (setf last-thing aux))
                    (when err
