@@ -183,6 +183,8 @@ headers and values as strings."
       (null)
       (string
        (format-line* stream "Content-Length: ~d" (length content)))
+      ((array (unsigned-byte 8))
+       (format-line* stream "Content-Length: ~d" (length content)))
       (stream
        (unless (binary-input-stream-p content)
          (error "~S must be a binary input stream." content))
@@ -202,6 +204,8 @@ headers and values as strings."
       (null)
       (string
        (write-string content stream))
+      ((array (unsigned-byte 8))
+       (write-sequence content stream))
       (stream
        (uiop/stream:copy-stream-to-stream content stream :element-type '(unsigned-byte 8))))
 
