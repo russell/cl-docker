@@ -20,14 +20,18 @@
 
 (in-package :docker/containers)
 
-(defun list-containers (&key limit since before size all)
+(defun list-containers (&key limit since before size all filters)
   (request-json "/containers/json"
                 :parameters
                 `(("limit" . ,limit)
                   ("since" . ,since)
                   ("before" . ,before)
                   ("size" . ,(and size 1))
-                  ("all" . ,(and all 1)))))
+                  ("all" . ,(and all 1))
+                  ("filters" . ,(and filters
+                                     (json:encode-json-to-string
+                                       filters))))))
+
 
 
 (defun inspect-container (id)
