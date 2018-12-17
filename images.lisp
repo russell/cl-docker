@@ -62,6 +62,15 @@ contains a tag, the second value is NIL."
                                      ("dockerfile" . ,dockerfile))
                        :content spec))
 
+(defmethod build-image((spec array) &key status tag dockerfile)
+  "build image from tarstream"
+  (request-json-stream "/build" status
+                       :method :post
+                       :content-type "application/x-tar"
+                       :parameters `(("t" . ,tag)
+                                     ("dockerfile" . ,dockerfile))
+                       :content spec))
+
 
 (defun list-images (&key all filters)
   ;; filters example: {"dangling": ["true"]}
