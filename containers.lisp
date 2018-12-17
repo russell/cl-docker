@@ -40,10 +40,11 @@
 (defun inspect-container-changes (id)
   (request-json (format nil "/containers/~a/changes" id)))
 
-(defun create-container (image &key json)
+(defun create-container (image &key name json)
   (request-json "/containers/create"
                 :method :post
                 :content-type "application/json"
+                :parameters `(("name" . ,name))
                 :content (json:encode-json-to-string
                            (cons
                              `("Image" . ,image)
